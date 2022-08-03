@@ -61,7 +61,6 @@ export const Camera = forwardRef((props, ref) => {
   const container = useRef(null)
 
   const [stream, setStream] = useState(null)
-  const [imageCapture, setImageCapture] = useState(null)
   const [numberOfCameras, setNumberOfCameras] = useState(0)
   const [notSupported, setNotSupported] = useState(false)
   const [permissionDenied, setPermissionDenied] = useState(false)
@@ -102,7 +101,6 @@ export const Camera = forwardRef((props, ref) => {
       format,
       quality,
       filter,
-      imageCapture,
     })
     onTakePhoto(photo)
     return photo
@@ -139,7 +137,6 @@ export const Camera = forwardRef((props, ref) => {
       setNotSupported,
       setPermissionDenied,
       setCameraCapabilities,
-      setImageCapture,
     })
   }, [facingMode, width, height])
 
@@ -280,4 +277,3 @@ export const Camera = forwardRef((props, ref) => {
 })
 
 export default Camera
-

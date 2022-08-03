@@ -19,6 +19,10 @@ const CameraOverlay = ({
     { 'camera-flash': isFlashing },
   )
 
+  const flashingOverlayProps = isFlashing
+    ? { fillOpacity: 1, fill: '#ffffff' }
+    : {}
+
   return (
     <svg
       className={classes}
@@ -52,6 +56,7 @@ const CameraOverlay = ({
         height={'100%'}
         mask="url(#mask)"
         fillOpacity="0.4"
+        {...flashingOverlayProps}
       />
       <rect
         {...shapeProps}

@@ -21,7 +21,10 @@ export const initCameraStream = async ({
   setNotSupported,
   setPermissionDenied,
   setCameraCapabilities,
+  setImageCapture
 }) => {
+
+  const supportsImageCapture = 'ImageCapture' in window && setImageCapture
 
   const constraints = {
     audio: false,
@@ -36,6 +39,9 @@ export const initCameraStream = async ({
   if (mediaDevices && mediaDevices.getUserMedia) {
     try {
       const stream = await mediaDevices.getUserMedia(constraints)
+      if (supportsImageCapture) {
+        setImageCapture(new ImageCapture(stream.getVideoTracks()[0]))
+      }
       handleSuccess(stream, setStream, setNumberOfCameras, setCameraCapabilities)
     }
     catch (err) {
@@ -54,6 +60,9 @@ export const initCameraStream = async ({
     getUserMedia(
       constraints,
       stream => {
+        if (supportsImageCapture) {
+          setImageCapture(new ImageCapture(stream.getVideoTracks()[0]))
+        }
         handleSuccess(stream, setStream, setNumberOfCameras, setCameraCapabilities)
       },
       err => {
@@ -74,7 +83,7 @@ export const stopCameraStream = (stream) => {
   })
 }
 
-export const takeCameraPhoto = ({
+export const takeCameraPhoto = async ({
   player,
   container,
   canvas,
@@ -83,11 +92,19 @@ export const takeCameraPhoto = ({
   format,
   quality,
   filter,
+  imageCapture
 }) => {
   if (!player || !container || !canvas) return
 
-  const playerWidth = player.videoWidth || CAMERA_DEFAULT_WIDTH
-  const playerHeight = player.videoHeight || CAMERA_DEFAULT_HEIGHT
+  const img = 'ImageCapture' in window && imageCapture && await imageCapture.takePhoto({
+      imageHeight: player.videoHeight,
+      imageWidth: player.videoWidth,
+      /* fillLightMode: 'auto', // breaks on desktop but should work on most mobile devices
+      redEyeReduction: true */
+    }).then((blob) => createImageBitmap(blob))
+
+  const playerWidth = img?.width || player.videoWidth || CAMERA_DEFAULT_WIDTH
+  const playerHeight = img?.height || player.videoHeight || CAMERA_DEFAULT_HEIGHT
   const playerAR = playerWidth / playerHeight
 
   const canvasWidth = container.offsetWidth || CAMERA_DEFAULT_WIDTH
@@ -126,7 +143,7 @@ export const takeCameraPhoto = ({
     context.scale(-1, 1);
   }
 
-  context.drawImage(player, sX, sY, sW, sH, 0, 0, sW, sH)
+  context.drawImage(img || player, sX, sY, sW, sH, 0, 0, sW, sH)
 
   if (filter && !_isEqual(filter, CAMERA_FILTERS.NONE)) {
     const sourceImageData = context.getImageData(0, 0, sW, sH)
